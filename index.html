@@ -2,605 +2,656 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NES Emulator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chuyển Đổi Âm Thanh</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
         }
-
+        
         body {
-            font-family: 'Courier New', monospace;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
-            flex-direction: column;
+            justify-content: center;
             align-items: center;
-            padding: 10px;
-            touch-action: manipulation;
-            overflow-x: hidden;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 800px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .screen-container {
-            background: #2a2a2a;
-            border-radius: 15px;
-            padding: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        #screen {
-            width: 100%;
-            height: auto;
-            background: #000;
-            border-radius: 8px;
-            image-rendering: pixelated;
-            image-rendering: crisp-edges;
-        }
-
-        .load-section {
-            background: rgba(255,255,255,0.95);
             padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #667eea;
             text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
         }
-
-        .load-section h2 {
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+        
+        .upload-area:hover {
+            background: #f0f4ff;
+            border-color: #764ba2;
+        }
+        
+        .upload-area.dragover {
+            background: #e8edff;
+            border-color: #764ba2;
+        }
+        
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .format-selector {
+            margin: 20px 0;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
             color: #333;
-            margin-bottom: 15px;
-            font-size: 1.3em;
+            font-weight: 600;
         }
-
-        .file-input-wrapper {
-            position: relative;
-            display: inline-block;
-            cursor: pointer;
+        
+        select {
             width: 100%;
-            max-width: 300px;
-        }
-
-        .file-input-wrapper input[type="file"] {
-            position: absolute;
-            opacity: 0;
-            width: 100%;
-            height: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
             cursor: pointer;
+            transition: border-color 0.3s;
         }
-
-        .file-input-button {
+        
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .quality-selector {
+            margin: 15px 0;
+            display: none;
+        }
+        
+        .quality-selector.show {
+            display: block;
+        }
+        
+        .convert-btn {
+            width: 100%;
+            padding: 15px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 15px 30px;
-            border-radius: 25px;
-            font-weight: bold;
-            font-size: 1.1em;
-            display: block;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
             transition: transform 0.2s;
+            margin-top: 20px;
         }
-
-        .file-input-button:active {
-            transform: scale(0.95);
+        
+        .convert-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
         }
-
+        
+        .convert-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .file-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            display: none;
+        }
+        
+        .file-info.show {
+            display: block;
+        }
+        
+        .file-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .file-size {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .progress-container {
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .progress-container.show {
+            display: block;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .progress-text {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .result {
+            display: none;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .result.show {
+            display: block;
+        }
+        
+        .download-btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+        
+        .download-btn:hover {
+            background: #218838;
+        }
+        
         .status {
             margin-top: 15px;
             padding: 10px;
             border-radius: 8px;
-            font-size: 0.9em;
+            text-align: center;
             display: none;
         }
-
+        
         .status.show {
             display: block;
         }
-
-        .status.success {
-            background: #d4edda;
-            color: #155724;
-        }
-
+        
         .status.error {
-            background: #f8d7da;
-            color: #721c24;
+            background: #fee;
+            color: #c00;
         }
-
+        
+        .status.success {
+            background: #efe;
+            color: #070;
+        }
+        
         .status.info {
-            background: #d1ecf1;
-            color: #0c5460;
+            background: #e7f3ff;
+            color: #0066cc;
         }
-
-        .controller {
-            background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            border: 3px solid #1a1a1a;
-        }
-
-        .controller-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .delta-logo {
-            color: white;
-            font-size: 1.5em;
-            font-weight: bold;
-            letter-spacing: 3px;
-        }
-
-        .menu-btn {
-            background: #666;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 15px;
-            font-size: 0.8em;
-            cursor: pointer;
-        }
-
-        .controls-layout {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            align-items: center;
-        }
-
-        .dpad-container {
-            display: flex;
-            justify-content: center;
-        }
-
-        .dpad {
-            position: relative;
-            width: 140px;
-            height: 140px;
-        }
-
-        .dpad-btn {
-            position: absolute;
-            width: 45px;
-            height: 45px;
-            background: linear-gradient(145deg, #4a4a4a, #2a2a2a);
-            border: 2px solid #666;
-            border-radius: 8px;
-            color: white;
-            font-size: 1.2em;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            user-select: none;
-            transition: all 0.1s;
-        }
-
-        .dpad-btn:active {
-            background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
-            transform: scale(0.95);
-        }
-
-        .dpad-center {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 35px;
-            height: 35px;
-            background: #1a1a1a;
-            border-radius: 50%;
-        }
-
-        .dpad-up { top: 0; left: 50%; transform: translateX(-50%); }
-        .dpad-down { bottom: 0; left: 50%; transform: translateX(-50%); }
-        .dpad-left { left: 0; top: 50%; transform: translateY(-50%); }
-        .dpad-right { right: 0; top: 50%; transform: translateY(-50%); }
-
-        .action-buttons {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .action-btn {
-            width: 65px;
-            height: 65px;
-            border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, #ff4444, #cc0000);
-            border: 4px solid #8a0000;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.4), inset 0 -3px 8px rgba(0,0,0,0.3);
-            color: white;
-            font-weight: bold;
-            font-size: 1.2em;
-            cursor: pointer;
-            user-select: none;
-            transition: all 0.1s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .action-btn:active {
-            background: radial-gradient(circle at 30% 30%, #cc0000, #990000);
-            transform: scale(0.9);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.4), inset 0 -1px 4px rgba(0,0,0,0.3);
-        }
-
-        .bottom-controls {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            margin-top: 20px;
-        }
-
-        .select-start-btn {
-            background: linear-gradient(145deg, #4a4a4a, #2a2a2a);
-            border: 2px solid #666;
-            color: #ff4444;
-            padding: 10px 25px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 0.9em;
-            cursor: pointer;
-            user-select: none;
-            transition: all 0.1s;
-        }
-
-        .select-start-btn:active {
-            background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
-            transform: scale(0.95);
-        }
-
-        @media (max-width: 600px) {
-            .controls-layout {
-                grid-template-columns: 1fr;
-                gap: 30px;
-            }
-            
-            .dpad {
-                width: 120px;
-                height: 120px;
-            }
-            
-            .dpad-btn {
-                width: 40px;
-                height: 40px;
-            }
-            
-            .action-btn {
-                width: 55px;
-                height: 55px;
-            }
-        }
-
-        .audio-notice {
-            background: #fff3cd;
+        
+        .tip {
+            background: #fff9e6;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            margin-top: 15px;
+            border-radius: 5px;
+            font-size: 13px;
             color: #856404;
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 10px;
-            font-size: 0.85em;
-            text-align: center;
+            display: none;
+        }
+        
+        .tip.show {
+            display: block;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="screen-container">
-            <canvas id="screen" width="256" height="240"></canvas>
+        <h1>🎵 Chuyển Đổi Âm Thanh & Video</h1>
+        <p class="subtitle">Hỗ trợ: WAV, MP3, OGG, AAC, M4A, WMA, WebM, MP4, AVI, MKV</p>
+        
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📁</div>
+            <p><strong>Nhấp để chọn file</strong> hoặc kéo thả file vào đây</p>
+            <p style="font-size: 12px; color: #999; margin-top: 10px;">Hỗ trợ file âm thanh & video lớn tới 200MB</p>
         </div>
-
-        <div class="load-section">
-            <h2>🎮 Load NES Game</h2>
-            <div class="file-input-wrapper">
-                <input type="file" id="romInput" accept=".nes">
-                <div class="file-input-button">Choose .NES File</div>
-            </div>
-            <div id="status" class="status"></div>
-            <div class="audio-notice">
-                📱 Tap screen after loading to enable audio
-            </div>
+        
+        <input type="file" id="fileInput" accept="audio/*,video/*">
+        
+        <div class="file-info" id="fileInfo">
+            <div class="file-name" id="fileName"></div>
+            <div class="file-size" id="fileSize"></div>
         </div>
-
-        <div class="controller">
-            <div class="controller-top">
-                <div class="delta-logo">DELTA</div>
-                <button class="menu-btn" onclick="pauseResume()">⏯ Pause</button>
+        
+        <div class="tip" id="tip">
+            💡 <strong>File lớn:</strong> Quá trình xử lý có thể mất 30-60 giây. Vui lòng kiên nhẫn chờ đợi!
+        </div>
+        
+        <div class="format-selector">
+            <label for="outputFormat">Chọn định dạng đầu ra:</label>
+            <select id="outputFormat">
+                <option value="wav">WAV (chất lượng gốc, file lớn)</option>
+                <option value="mp3">MP3 (phổ biến, file nhỏ)</option>
+                <option value="ogg">OGG Vorbis (chất lượng tốt)</option>
+                <option value="webm">WebM Opus (file rất nhỏ)</option>
+            </select>
+        </div>
+        
+        <button class="convert-btn" id="convertBtn" disabled>Chuyển Đổi</button>
+        
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
             </div>
-
-            <div class="controls-layout">
-                <div class="dpad-container">
-                    <div class="dpad">
-                        <div class="dpad-center"></div>
-                        <button class="dpad-btn dpad-up" data-key="up">▲</button>
-                        <button class="dpad-btn dpad-down" data-key="down">▼</button>
-                        <button class="dpad-btn dpad-left" data-key="left">◀</button>
-                        <button class="dpad-btn dpad-right" data-key="right">▶</button>
-                    </div>
-                </div>
-
-                <div class="action-buttons">
-                    <div style="position: relative;">
-                        <button class="action-btn" data-key="b">B</button>
-                    </div>
-                    <div style="position: relative;">
-                        <button class="action-btn" data-key="a">A</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bottom-controls">
-                <button class="select-start-btn" data-key="select">SELECT</button>
-                <button class="select-start-btn" data-key="start">START</button>
-            </div>
+            <div class="progress-text" id="progressText">Đang xử lý...</div>
+        </div>
+        
+        <div class="status" id="status"></div>
+        
+        <div class="result" id="result">
+            <a href="#" class="download-btn" id="downloadBtn" download>⬇️ Tải Xuống File</a>
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsnes/1.2.1/jsnes.min.js"></script>
     <script>
-        let nes = null;
-        let frameTimer = null;
-        let isRunning = false;
-        let audioContext = null;
-        let scriptProcessor = null;
-        let sampleQueue = [];
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const convertBtn = document.getElementById('convertBtn');
+        const outputFormat = document.getElementById('outputFormat');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const status = document.getElementById('status');
+        const result = document.getElementById('result');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const tip = document.getElementById('tip');
+        
+        let selectedFile = null;
 
-        const SAMPLE_RATE = 44100;
-        const SAMPLE_COUNT = 4096;
-
-        const canvas = document.getElementById('screen');
-        const ctx = canvas.getContext('2d', { alpha: false });
-        const imageData = ctx.createImageData(256, 240);
-
-        // Controller state
-        const buttons = {
-            up: false, down: false, left: false, right: false,
-            a: false, b: false, select: false, start: false
-        };
-
-        // JSNES Controller mapping
-        const BUTTON_A = 0;
-        const BUTTON_B = 1;
-        const BUTTON_SELECT = 2;
-        const BUTTON_START = 3;
-        const BUTTON_UP = 4;
-        const BUTTON_DOWN = 5;
-        const BUTTON_LEFT = 6;
-        const BUTTON_RIGHT = 7;
-
-        // Initialize audio
-        function initAudio() {
-            if (audioContext) return true;
-
-            try {
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                audioContext = new AudioContext();
-                
-                scriptProcessor = audioContext.createScriptProcessor(SAMPLE_COUNT, 0, 2);
-                scriptProcessor.onaudioprocess = onAudioProcess;
-                scriptProcessor.connect(audioContext.destination);
-                
-                console.log('Audio initialized');
-                return true;
-            } catch (e) {
-                console.error('Audio init failed:', e);
-                return false;
-            }
-        }
-
-        function onAudioProcess(e) {
-            const left = e.outputBuffer.getChannelData(0);
-            const right = e.outputBuffer.getChannelData(1);
-            
-            for (let i = 0; i < SAMPLE_COUNT; i++) {
-                if (sampleQueue.length > 0) {
-                    const sample = sampleQueue.shift();
-                    left[i] = sample;
-                    right[i] = sample;
-                } else {
-                    left[i] = 0;
-                    right[i] = 0;
-                }
-            }
-        }
-
-        // Frame callback
-        function onFrame(frameBuffer) {
-            for (let i = 0; i < 256 * 240; i++) {
-                const pixel = frameBuffer[i];
-                const idx = i * 4;
-                imageData.data[idx] = pixel & 0xFF;
-                imageData.data[idx + 1] = (pixel >> 8) & 0xFF;
-                imageData.data[idx + 2] = (pixel >> 16) & 0xFF;
-                imageData.data[idx + 3] = 0xFF;
-            }
-            ctx.putImageData(imageData, 0, 0);
-        }
-
-        // Audio callback
-        function onAudioSample(left, right) {
-            if (sampleQueue.length < SAMPLE_RATE / 10) {
-                sampleQueue.push(left);
-            }
-        }
-
-        // Load ROM
-        document.getElementById('romInput').addEventListener('change', async function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            showStatus('Loading ROM...', 'info');
-
-            try {
-                const arrayBuffer = await file.arrayBuffer();
-                const romData = new Uint8Array(arrayBuffer);
-                
-                console.log('ROM size:', romData.length);
-                
-                // Stop existing emulator
-                if (isRunning) {
-                    stopEmulator();
-                }
-
-                // Create new NES instance
-                nes = new jsnes.NES({
-                    onFrame: onFrame,
-                    onAudioSample: onAudioSample,
-                    sampleRate: SAMPLE_RATE
-                });
-
-                // Load ROM
-                nes.loadROM(romData);
-                
-                // Initialize audio on first user interaction
-                document.addEventListener('touchstart', initAudio, { once: true });
-                document.addEventListener('click', initAudio, { once: true });
-                
-                // Start emulator
-                startEmulator();
-                
-                showStatus(`✓ Game loaded: ${file.name}`, 'success');
-            } catch (error) {
-                console.error('Load error:', error);
-                showStatus('Error: ' + error.message, 'error');
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
             }
         });
-
-        // Start emulator
-        function startEmulator() {
-            if (!nes || isRunning) return;
-            
-            isRunning = true;
-            const frameTime = 1000 / 60; // 60 FPS
-            let lastTime = Date.now();
-            
-            function frame() {
-                if (!isRunning) return;
-                
-                const now = Date.now();
-                const deltaTime = now - lastTime;
-                
-                if (deltaTime >= frameTime) {
-                    lastTime = now - (deltaTime % frameTime);
-                    
-                    // Update controller state
-                    updateController();
-                    
-                    // Run one frame
-                    nes.frame();
-                }
-                
-                frameTimer = requestAnimationFrame(frame);
+        
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+        
+        function handleFile(file) {
+            if (!file.type.startsWith('audio/') && !file.type.startsWith('video/')) {
+                showStatus('⚠️ Vui lòng chọn file âm thanh hoặc video hợp lệ!', 'error');
+                return;
             }
             
-            frame();
-            console.log('Emulator started');
-        }
-
-        // Stop emulator
-        function stopEmulator() {
-            isRunning = false;
-            if (frameTimer) {
-                cancelAnimationFrame(frameTimer);
-                frameTimer = null;
-            }
-        }
-
-        // Update controller
-        function updateController() {
-            if (!nes) return;
+            selectedFile = file;
+            const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+            const fileType = file.type.startsWith('video/') ? '🎬 Video' : '🎵 Audio';
+            fileName.textContent = `${fileType}: ${file.name}`;
+            fileSize.textContent = `Kích thước: ${sizeMB} MB`;
+            fileInfo.classList.add('show');
+            convertBtn.disabled = false;
+            result.classList.remove('show');
+            status.classList.remove('show');
             
-            nes.buttonDown(1, BUTTON_UP, buttons.up);
-            nes.buttonDown(1, BUTTON_DOWN, buttons.down);
-            nes.buttonDown(1, BUTTON_LEFT, buttons.left);
-            nes.buttonDown(1, BUTTON_RIGHT, buttons.right);
-            nes.buttonDown(1, BUTTON_A, buttons.a);
-            nes.buttonDown(1, BUTTON_B, buttons.b);
-            nes.buttonDown(1, BUTTON_SELECT, buttons.select);
-            nes.buttonDown(1, BUTTON_START, buttons.start);
-        }
-
-        // Pause/Resume
-        function pauseResume() {
-            if (!nes) return;
-            
-            if (isRunning) {
-                stopEmulator();
-                showStatus('⏸ Paused', 'info');
+            // Show tip for large files
+            if (file.size > 50 * 1024 * 1024) {
+                tip.classList.add('show');
             } else {
-                startEmulator();
-                showStatus('▶ Resumed', 'info');
+                tip.classList.remove('show');
             }
         }
-
-        // Touch/Mouse controls
-        document.querySelectorAll('[data-key]').forEach(btn => {
-            const key = btn.getAttribute('data-key');
+        
+        convertBtn.addEventListener('click', async () => {
+            if (!selectedFile) return;
             
-            btn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                buttons[key] = true;
-            });
+            convertBtn.disabled = true;
+            progressContainer.classList.add('show');
+            result.classList.remove('show');
+            updateProgress(0, 'Đang tải file...');
             
-            btn.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                buttons[key] = false;
-            });
-            
-            btn.addEventListener('mousedown', () => buttons[key] = true);
-            btn.addEventListener('mouseup', () => buttons[key] = false);
-            btn.addEventListener('mouseleave', () => buttons[key] = false);
-        });
-
-        // Keyboard controls
-        const keyMap = {
-            'ArrowUp': 'up', 'ArrowDown': 'down',
-            'ArrowLeft': 'left', 'ArrowRight': 'right',
-            'z': 'a', 'x': 'b',
-            'a': 'select', 's': 'start'
-        };
-
-        document.addEventListener('keydown', (e) => {
-            const key = keyMap[e.key];
-            if (key) {
-                e.preventDefault();
-                buttons[key] = true;
+            try {
+                const format = outputFormat.value;
+                const isVideo = selectedFile.type.startsWith('video/');
+                
+                updateProgress(10, 'Đang tải file...');
+                
+                // For video/WebM files, use different approach
+                if (isVideo || selectedFile.name.toLowerCase().endsWith('.webm')) {
+                    const blob = await convertVideoToAudio(selectedFile, format);
+                    
+                    updateProgress(100, 'Chuyển đổi thành công!');
+                    
+                    // Create download
+                    const downloadUrl = URL.createObjectURL(blob);
+                    const originalName = selectedFile.name.replace(/\.[^/.]+$/, '');
+                    downloadBtn.href = downloadUrl;
+                    downloadBtn.download = `${originalName}.${format}`;
+                    
+                    result.classList.add('show');
+                    showStatus('✅ Hoàn tất! File đã sẵn sàng tải xuống.', 'success');
+                    
+                    setTimeout(() => {
+                        progressContainer.classList.remove('show');
+                    }, 2000);
+                } else {
+                    // Audio file processing
+                    updateProgress(20, 'Đang giải mã âm thanh...');
+                    
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const arrayBuffer = await selectedFile.arrayBuffer();
+                    
+                    updateProgress(40, 'Đang xử lý dữ liệu...');
+                    
+                    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                    
+                    updateProgress(60, 'Đang chuyển đổi định dạng...');
+                    
+                    let blob;
+                    if (format === 'wav') {
+                        blob = await convertToWAV(audioBuffer);
+                    } else {
+                        blob = await convertWithMediaRecorder(audioBuffer, format);
+                    }
+                    
+                    updateProgress(90, 'Hoàn tất...');
+                    
+                    audioContext.close();
+                    
+                    updateProgress(100, 'Chuyển đổi thành công!');
+                    
+                    // Create download
+                    const downloadUrl = URL.createObjectURL(blob);
+                    const originalName = selectedFile.name.replace(/\.[^/.]+$/, '');
+                    downloadBtn.href = downloadUrl;
+                    downloadBtn.download = `${originalName}.${format}`;
+                    
+                    result.classList.add('show');
+                    showStatus('✅ Hoàn tất! File đã sẵn sàng tải xuống.', 'success');
+                    
+                    setTimeout(() => {
+                        progressContainer.classList.remove('show');
+                    }, 2000);
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus('❌ Lỗi: ' + (error.message || 'Không thể xử lý file này. Thử định dạng khác!'), 'error');
+                progressContainer.classList.remove('show');
+            } finally {
+                convertBtn.disabled = false;
             }
         });
-
-        document.addEventListener('keyup', (e) => {
-            const key = keyMap[e.key];
-            if (key) {
-                e.preventDefault();
-                buttons[key] = false;
+        
+        function updateProgress(percent, text) {
+            progressFill.style.width = percent + '%';
+            progressText.textContent = text + ' (' + percent + '%)';
+        }
+        
+        function convertToWAV(audioBuffer) {
+            return new Promise((resolve) => {
+                const numberOfChannels = audioBuffer.numberOfChannels;
+                const sampleRate = audioBuffer.sampleRate;
+                const length = audioBuffer.length * numberOfChannels * 2;
+                const buffer = new ArrayBuffer(44 + length);
+                const view = new DataView(buffer);
+                
+                // Write WAV header
+                writeString(view, 0, 'RIFF');
+                view.setUint32(4, 36 + length, true);
+                writeString(view, 8, 'WAVE');
+                writeString(view, 12, 'fmt ');
+                view.setUint32(16, 16, true);
+                view.setUint16(20, 1, true);
+                view.setUint16(22, numberOfChannels, true);
+                view.setUint32(24, sampleRate, true);
+                view.setUint32(28, sampleRate * numberOfChannels * 2, true);
+                view.setUint16(32, numberOfChannels * 2, true);
+                view.setUint16(34, 16, true);
+                writeString(view, 36, 'data');
+                view.setUint32(40, length, true);
+                
+                // Write audio data in chunks for better performance
+                const channels = [];
+                for (let i = 0; i < numberOfChannels; i++) {
+                    channels.push(audioBuffer.getChannelData(i));
+                }
+                
+                let offset = 44;
+                const chunkSize = 4096;
+                
+                for (let i = 0; i < audioBuffer.length; i += chunkSize) {
+                    const end = Math.min(i + chunkSize, audioBuffer.length);
+                    for (let j = i; j < end; j++) {
+                        for (let ch = 0; ch < numberOfChannels; ch++) {
+                            const sample = Math.max(-1, Math.min(1, channels[ch][j]));
+                            view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+                            offset += 2;
+                        }
+                    }
+                }
+                
+                resolve(new Blob([buffer], { type: 'audio/wav' }));
+            });
+        }
+        
+        function writeString(view, offset, string) {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
             }
-        });
-
+        }
+        
+        async function convertWithMediaRecorder(audioBuffer, format) {
+            return new Promise((resolve, reject) => {
+                const sampleRate = audioBuffer.sampleRate;
+                const offlineContext = new OfflineAudioContext(
+                    audioBuffer.numberOfChannels,
+                    audioBuffer.length,
+                    sampleRate
+                );
+                
+                const source = offlineContext.createBufferSource();
+                source.buffer = audioBuffer;
+                source.connect(offlineContext.destination);
+                source.start(0);
+                
+                offlineContext.startRendering().then(renderedBuffer => {
+                    const mediaStream = createMediaStreamFromBuffer(renderedBuffer);
+                    
+                    const mimeTypes = {
+                        'mp3': 'audio/mpeg',
+                        'ogg': 'audio/ogg; codecs=opus',
+                        'webm': 'audio/webm; codecs=opus'
+                    };
+                    
+                    let mimeType = mimeTypes[format];
+                    
+                    // Fallback if format not supported
+                    if (!MediaRecorder.isTypeSupported(mimeType)) {
+                        mimeType = 'audio/webm';
+                    }
+                    
+                    const mediaRecorder = new MediaRecorder(mediaStream, {
+                        mimeType: mimeType,
+                        audioBitsPerSecond: 128000
+                    });
+                    
+                    const chunks = [];
+                    
+                    mediaRecorder.ondataavailable = (e) => {
+                        if (e.data.size > 0) chunks.push(e.data);
+                    };
+                    
+                    mediaRecorder.onstop = () => {
+                        const blob = new Blob(chunks, { type: mimeType });
+                        resolve(blob);
+                    };
+                    
+                    mediaRecorder.onerror = (e) => {
+                        reject(new Error('Không thể chuyển đổi sang định dạng này'));
+                    };
+                    
+                    mediaRecorder.start();
+                    setTimeout(() => {
+                        mediaRecorder.stop();
+                    }, (renderedBuffer.duration + 0.5) * 1000);
+                });
+            });
+        }
+        
+        function createMediaStreamFromBuffer(audioBuffer) {
+            const audioContext = new AudioContext();
+            const source = audioContext.createBufferSource();
+            source.buffer = audioBuffer;
+            
+            const destination = audioContext.createMediaStreamDestination();
+            source.connect(destination);
+            source.start(0);
+            
+            return destination.stream;
+        }
+        
+        async function convertVideoToAudio(file, format) {
+            return new Promise((resolve, reject) => {
+                const video = document.createElement('video');
+                const url = URL.createObjectURL(file);
+                video.src = url;
+                video.muted = false;
+                
+                video.onloadedmetadata = () => {
+                    updateProgress(30, 'Đang trích xuất âm thanh từ video...');
+                    
+                    // Create audio context
+                    const audioContext = new AudioContext();
+                    const source = audioContext.createMediaElementSource(video);
+                    const destination = audioContext.createMediaStreamDestination();
+                    source.connect(destination);
+                    
+                    updateProgress(50, 'Đang ghi âm...');
+                    
+                    // Setup MediaRecorder
+                    const mimeTypes = {
+                        'mp3': 'audio/webm',
+                        'ogg': 'audio/ogg; codecs=opus',
+                        'webm': 'audio/webm; codecs=opus',
+                        'wav': 'audio/webm'
+                    };
+                    
+                    const mimeType = mimeTypes[format] || 'audio/webm';
+                    const mediaRecorder = new MediaRecorder(destination.stream, {
+                        mimeType: mimeType,
+                        audioBitsPerSecond: 128000
+                    });
+                    
+                    const chunks = [];
+                    
+                    mediaRecorder.ondataavailable = (e) => {
+                        if (e.data.size > 0) {
+                            chunks.push(e.data);
+                        }
+                    };
+                    
+                    mediaRecorder.onstop = () => {
+                        updateProgress(80, 'Đang hoàn thiện file...');
+                        const blob = new Blob(chunks, { type: mimeType });
+                        URL.revokeObjectURL(url);
+                        audioContext.close();
+                        resolve(blob);
+                    };
+                    
+                    mediaRecorder.onerror = (e) => {
+                        URL.revokeObjectURL(url);
+                        reject(new Error('Không thể ghi âm từ video'));
+                    };
+                    
+                    // Start recording and play video
+                    mediaRecorder.start();
+                    video.play();
+                    
+                    video.onended = () => {
+                        mediaRecorder.stop();
+                    };
+                };
+                
+                video.onerror = () => {
+                    URL.revokeObjectURL(url);
+                    reject(new Error('Không thể đọc file video/webm này'));
+                };
+            });
+        }
+        
         function showStatus(message, type) {
-            const status = document.getElementById('status');
             status.textContent = message;
-            status.className = `status ${type} show`;
-            
-            if (type !== 'info') {
-                setTimeout(() => status.classList.remove('show'), 3000);
-            }
+            status.className = 'status show ' + type;
         }
-
-        // Prevent context menu
-        document.addEventListener('contextmenu', (e) => e.preventDefault());
     </script>
 </body>
 </html>
