@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NES Emulator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            touch-action: manipulation;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .screen-container {
+            background: #2a2a2a;
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        #screen {
+            width: 100%;
+            height: auto;
+            background: #000;
+            border-radius: 8px;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        .load-section {
+            background: rgba(255,255,255,0.95);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        .load-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 1.1em;
+            display: block;
+            transition: transform 0.2s;
+        }
+
+        .file-input-button:active {
+            transform: scale(0.95);
+        }
+
+        .status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            display: none;
+        }
+
+        .status.show {
+            display: block;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .controller {
+            background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 3px solid #1a1a1a;
+        }
+
+        .controller-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .delta-logo {
+            color: white;
+            font-size: 1.5em;
+            font-weight: bold;
+            letter-spacing: 3px;
+        }
+
+        .menu-btn {
+            background: #666;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            cursor: pointer;
+        }
+
+        .controls-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .dpad-container {
+            display: flex;
+            justify-content: center;
+        }
+
+        .dpad {
+            position: relative;
+            width: 140px;
+            height: 140px;
+        }
+
+        .dpad-btn {
+            position: absolute;
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(145deg, #4a4a4a, #2a2a2a);
+            border: 2px solid #666;
+            border-radius: 8px;
+            color: white;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.1s;
+        }
+
+        .dpad-btn:active {
+            background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
+            transform: scale(0.95);
+        }
+
+        .dpad-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 35px;
+            height: 35px;
+            background: #1a1a1a;
+            border-radius: 50%;
+        }
+
+        .dpad-up { top: 0; left: 50%; transform: translateX(-50%); }
+        .dpad-down { bottom: 0; left: 50%; transform: translateX(-50%); }
+        .dpad-left { left: 0; top: 50%; transform: translateY(-50%); }
+        .dpad-right { right: 0; top: 50%; transform: translateY(-50%); }
+
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .action-btn {
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #ff4444, #cc0000);
+            border: 4px solid #8a0000;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4), inset 0 -3px 8px rgba(0,0,0,0.3);
+            color: white;
+            font-weight: bold;
+            font-size: 1.2em;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .action-btn:active {
+            background: radial-gradient(circle at 30% 30%, #cc0000, #990000);
+            transform: scale(0.9);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4), inset 0 -1px 4px rgba(0,0,0,0.3);
+        }
+
+        .bottom-controls {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .select-start-btn {
+            background: linear-gradient(145deg, #4a4a4a, #2a2a2a);
+            border: 2px solid #666;
+            color: #ff4444;
+            padding: 10px 25px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.1s;
+        }
+
+        .select-start-btn:active {
+            background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
+            transform: scale(0.95);
+        }
+
+        @media (max-width: 600px) {
+            .controls-layout {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            
+            .dpad {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .dpad-btn {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .action-btn {
+                width: 55px;
+                height: 55px;
+            }
+        }
+
+        .audio-notice {
+            background: #fff3cd;
+            color: #856404;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 0.85em;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="screen-container">
+            <canvas id="screen" width="256" height="240"></canvas>
+        </div>
+
+        <div class="load-section">
+            <h2>🎮 Load NES Game</h2>
+            <div class="file-input-wrapper">
+                <input type="file" id="romInput" accept=".nes">
+                <div class="file-input-button">Choose .NES File</div>
+            </div>
+            <div id="status" class="status"></div>
+            <div class="audio-notice">
+                📱 Tap screen after loading to enable audio
+            </div>
+        </div>
+
+        <div class="controller">
+            <div class="controller-top">
+                <div class="delta-logo">DELTA</div>
+                <button class="menu-btn" onclick="pauseResume()">⏯ Pause</button>
+            </div>
+
+            <div class="controls-layout">
+                <div class="dpad-container">
+                    <div class="dpad">
+                        <div class="dpad-center"></div>
+                        <button class="dpad-btn dpad-up" data-key="up">▲</button>
+                        <button class="dpad-btn dpad-down" data-key="down">▼</button>
+                        <button class="dpad-btn dpad-left" data-key="left">◀</button>
+                        <button class="dpad-btn dpad-right" data-key="right">▶</button>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <div style="position: relative;">
+                        <button class="action-btn" data-key="b">B</button>
+                    </div>
+                    <div style="position: relative;">
+                        <button class="action-btn" data-key="a">A</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bottom-controls">
+                <button class="select-start-btn" data-key="select">SELECT</button>
+                <button class="select-start-btn" data-key="start">START</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsnes/1.2.1/jsnes.min.js"></script>
+    <script>
+        let nes = null;
+        let frameTimer = null;
+        let isRunning = false;
+        let audioContext = null;
+        let scriptProcessor = null;
+        let sampleQueue = [];
+
+        const SAMPLE_RATE = 44100;
+        const SAMPLE_COUNT = 4096;
+
+        const canvas = document.getElementById('screen');
+        const ctx = canvas.getContext('2d', { alpha: false });
+        const imageData = ctx.createImageData(256, 240);
+
+        // Controller state
+        const buttons = {
+            up: false, down: false, left: false, right: false,
+            a: false, b: false, select: false, start: false
+        };
+
+        // JSNES Controller mapping
+        const BUTTON_A = 0;
+        const BUTTON_B = 1;
+        const BUTTON_SELECT = 2;
+        const BUTTON_START = 3;
+        const BUTTON_UP = 4;
+        const BUTTON_DOWN = 5;
+        const BUTTON_LEFT = 6;
+        const BUTTON_RIGHT = 7;
+
+        // Initialize audio
+        function initAudio() {
+            if (audioContext) return true;
+
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioContext = new AudioContext();
+                
+                scriptProcessor = audioContext.createScriptProcessor(SAMPLE_COUNT, 0, 2);
+                scriptProcessor.onaudioprocess = onAudioProcess;
+                scriptProcessor.connect(audioContext.destination);
+                
+                console.log('Audio initialized');
+                return true;
+            } catch (e) {
+                console.error('Audio init failed:', e);
+                return false;
+            }
+        }
+
+        function onAudioProcess(e) {
+            const left = e.outputBuffer.getChannelData(0);
+            const right = e.outputBuffer.getChannelData(1);
+            
+            for (let i = 0; i < SAMPLE_COUNT; i++) {
+                if (sampleQueue.length > 0) {
+                    const sample = sampleQueue.shift();
+                    left[i] = sample;
+                    right[i] = sample;
+                } else {
+                    left[i] = 0;
+                    right[i] = 0;
+                }
+            }
+        }
+
+        // Frame callback
+        function onFrame(frameBuffer) {
+            for (let i = 0; i < 256 * 240; i++) {
+                const pixel = frameBuffer[i];
+                const idx = i * 4;
+                imageData.data[idx] = pixel & 0xFF;
+                imageData.data[idx + 1] = (pixel >> 8) & 0xFF;
+                imageData.data[idx + 2] = (pixel >> 16) & 0xFF;
+                imageData.data[idx + 3] = 0xFF;
+            }
+            ctx.putImageData(imageData, 0, 0);
+        }
+
+        // Audio callback
+        function onAudioSample(left, right) {
+            if (sampleQueue.length < SAMPLE_RATE / 10) {
+                sampleQueue.push(left);
+            }
+        }
+
+        // Load ROM
+        document.getElementById('romInput').addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            showStatus('Loading ROM...', 'info');
+
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const romData = new Uint8Array(arrayBuffer);
+                
+                console.log('ROM size:', romData.length);
+                
+                // Stop existing emulator
+                if (isRunning) {
+                    stopEmulator();
+                }
+
+                // Create new NES instance
+                nes = new jsnes.NES({
+                    onFrame: onFrame,
+                    onAudioSample: onAudioSample,
+                    sampleRate: SAMPLE_RATE
+                });
+
+                // Load ROM
+                nes.loadROM(romData);
+                
+                // Initialize audio on first user interaction
+                document.addEventListener('touchstart', initAudio, { once: true });
+                document.addEventListener('click', initAudio, { once: true });
+                
+                // Start emulator
+                startEmulator();
+                
+                showStatus(`✓ Game loaded: ${file.name}`, 'success');
+            } catch (error) {
+                console.error('Load error:', error);
+                showStatus('Error: ' + error.message, 'error');
+            }
+        });
+
+        // Start emulator
+        function startEmulator() {
+            if (!nes || isRunning) return;
+            
+            isRunning = true;
+            const frameTime = 1000 / 60; // 60 FPS
+            let lastTime = Date.now();
+            
+            function frame() {
+                if (!isRunning) return;
+                
+                const now = Date.now();
+                const deltaTime = now - lastTime;
+                
+                if (deltaTime >= frameTime) {
+                    lastTime = now - (deltaTime % frameTime);
+                    
+                    // Update controller state
+                    updateController();
+                    
+                    // Run one frame
+                    nes.frame();
+                }
+                
+                frameTimer = requestAnimationFrame(frame);
+            }
+            
+            frame();
+            console.log('Emulator started');
+        }
+
+        // Stop emulator
+        function stopEmulator() {
+            isRunning = false;
+            if (frameTimer) {
+                cancelAnimationFrame(frameTimer);
+                frameTimer = null;
+            }
+        }
+
+        // Update controller
+        function updateController() {
+            if (!nes) return;
+            
+            nes.buttonDown(1, BUTTON_UP, buttons.up);
+            nes.buttonDown(1, BUTTON_DOWN, buttons.down);
+            nes.buttonDown(1, BUTTON_LEFT, buttons.left);
+            nes.buttonDown(1, BUTTON_RIGHT, buttons.right);
+            nes.buttonDown(1, BUTTON_A, buttons.a);
+            nes.buttonDown(1, BUTTON_B, buttons.b);
+            nes.buttonDown(1, BUTTON_SELECT, buttons.select);
+            nes.buttonDown(1, BUTTON_START, buttons.start);
+        }
+
+        // Pause/Resume
+        function pauseResume() {
+            if (!nes) return;
+            
+            if (isRunning) {
+                stopEmulator();
+                showStatus('⏸ Paused', 'info');
+            } else {
+                startEmulator();
+                showStatus('▶ Resumed', 'info');
+            }
+        }
+
+        // Touch/Mouse controls
+        document.querySelectorAll('[data-key]').forEach(btn => {
+            const key = btn.getAttribute('data-key');
+            
+            btn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                buttons[key] = true;
+            });
+            
+            btn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                buttons[key] = false;
+            });
+            
+            btn.addEventListener('mousedown', () => buttons[key] = true);
+            btn.addEventListener('mouseup', () => buttons[key] = false);
+            btn.addEventListener('mouseleave', () => buttons[key] = false);
+        });
+
+        // Keyboard controls
+        const keyMap = {
+            'ArrowUp': 'up', 'ArrowDown': 'down',
+            'ArrowLeft': 'left', 'ArrowRight': 'right',
+            'z': 'a', 'x': 'b',
+            'a': 'select', 's': 'start'
+        };
+
+        document.addEventListener('keydown', (e) => {
+            const key = keyMap[e.key];
+            if (key) {
+                e.preventDefault();
+                buttons[key] = true;
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            const key = keyMap[e.key];
+            if (key) {
+                e.preventDefault();
+                buttons[key] = false;
+            }
+        });
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type} show`;
+            
+            if (type !== 'info') {
+                setTimeout(() => status.classList.remove('show'), 3000);
+            }
+        }
+
+        // Prevent context menu
+        document.addEventListener('contextmenu', (e) => e.preventDefault());
+    </script>
+</body>
+</html>
